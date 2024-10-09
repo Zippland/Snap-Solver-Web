@@ -1,51 +1,45 @@
 import formidable from 'formidable';
-import fs from 'fs';
-import path from 'path';
 import openai from 'openai';
+import fs from 'fs';
 
 export const config = {
   api: {
-    bodyParser: false, // 禁用 bodyParser 以处理文件上传
+    bodyParser: false,  // 禁用 bodyParser 以处理文件上传
   },
 };
 
 const handler = async (req, res) => {
   if (req.method === 'POST') {
     const form = new formidable.IncomingForm();
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-
-    // 确保 uploads 文件夹存在
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    // 解析上传文件
-    form.uploadDir = uploadDir;
-    form.keepExtensions = true;
 
     form.parse(req, async (err, fields, files) => {
       if (err) {
         return res.status(500).json({ error: 'File upload failed' });
       }
 
-      const filePath = files.file.path;
+      const filePath = files.file.filepath;  // 获取上传的图片文件路径
 
       // 调用 OpenAI GPT-4 进行图片分析
       const apiKey = process.env.OPENAI_API_KEY;
-      const image = fs.createReadStream(filePath);
+      openai.apiKey = apiKey;
 
-      const response = await openai.createImage({
-        model: "gpt-4-vision",
-        file: image,
-        prompt: "请分析并解决这张图片中的问题，用中文回答。",
-      });
+      const imageStream = fs.createReadStream(filePath);  // 创建文件读取流
 
-      const gptAnswer = response.data;
+      try {
+        const response = await openai.createImage({
+          model: "gpt-40-2024-08-06",
+          file: imageStream,
+          prompt: "请分析并解决这张图片中的问题，用中文回答。",
+        });
 
-      // 存储 GPT 的答案（保存到本地文本文件，或者直接返回给前端）
-      fs.writeFileSync(path.join(uploadDir, 'answer.txt'), gptAnswer);
+        const gptAnswer = response.data;  // GPT 的中文解答
 
-      res.status(200).json({ message: 'Image uploaded and processed', answer: gptAnswer });
+        // 将 GPT 的解答发送回前端
+        res.status(200).json({ answer: gptAnswer });
+      } catch (error) {
+        console.error('Error with GPT-4:', error);
+        res.status(500).json({ error: 'Error with GPT-4 processing' });
+      }
     });
   } else {
     res.status(405).json({ error: 'Method not allowed' });
