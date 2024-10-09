@@ -33,7 +33,7 @@ export default function Home() {
         <p>正在处理图片，请稍候...</p>
       ) : (
         <div className={styles.answerBox}>
-          <p>{answer ? answer : '请上传图片以获取答案。'}</p>
+          <p className={styles.text}>{answer ? answer : '请上传图片以获取答案。'}</p>
         </div>
       )}
     </div>
