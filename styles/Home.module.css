@@ -1,0 +1,18 @@
+.container {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .answerBox {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+  }
+  
+  p {
+    font-size: 18px;
+    color: #333;
+  }
+  
