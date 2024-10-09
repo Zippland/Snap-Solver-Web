@@ -37,7 +37,7 @@ const handler = async (req, res) => {
       const response = await openai.createImage({
         model: "gpt-4-vision",
         file: image,
-        prompt: "请分析并解决这张图片中所提出的问题，用中文回答。",
+        prompt: "请分析并解决这张图片中的问题，用中文回答。",
       });
 
       const gptAnswer = response.data;
