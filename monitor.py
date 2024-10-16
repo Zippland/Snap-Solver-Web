@@ -5,9 +5,9 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # 设置要监控的截图文件夹路径
-folder_path = 'D:\BaiduSyncdisk\Screenshots'
+folder_path = r'D:\BaiduSyncdisk\Screenshots'
 # 上传到 Vercel 服务器的 URL
-server_url = 'https://your-vercel-app.vercel.app/api/upload'
+server_url = 'https://snap-solver-a1i6os65o-zipplands-projects.vercel.app/api/upload'
 
 class ScreenshotHandler(FileSystemEventHandler):
     def on_created(self, event):
@@ -15,16 +15,24 @@ class ScreenshotHandler(FileSystemEventHandler):
             return None
         if event.src_path.endswith(".png"):
             print(f"New screenshot detected: {event.src_path}")
+            
+            # 等待几秒，确保截图文件写入完成
+            time.sleep(2)  # 等待2秒（根据需要调整）
             upload_image(event.src_path)
 
 def upload_image(image_path):
-    with open(image_path, 'rb') as image_file:
-        files = {'file': image_file}
-        response = requests.post(server_url, files=files)
-        if response.status_code == 200:
-            print("Image uploaded successfully!")
-        else:
-            print(f"Failed to upload image. Status code: {response.status_code}")
+    try:
+        with open(image_path, 'rb') as image_file:
+            files = {'file': image_file}
+            response = requests.post(server_url, files=files)
+            if response.status_code == 200:
+                print("Image uploaded successfully!")
+            else:
+                print(f"Failed to upload image. Status code: {response.status_code}")
+    except PermissionError as e:
+        print(f"PermissionError: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     event_handler = ScreenshotHandler()
