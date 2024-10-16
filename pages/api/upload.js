@@ -1,6 +1,10 @@
 import formidable from 'formidable';
 import fs from 'fs';
-import { Configuration, OpenAIApi } from 'openai';  // 引入新版 OpenAI 客户端
+import path from 'path';
+import { Configuration, OpenAIApi } from 'openai';
+
+let status = 'idle';  // 用于保存状态
+let gptAnswer = '';  // 保存 GPT 返回的答案
 
 export const config = {
   api: {
@@ -24,23 +28,37 @@ const handler = async (req, res) => {
     form.parse(req, async (err, fields, files) => {
       if (err) {
         console.error('文件上传解析失败:', err);
-        return res.status(500).json({ error: 'File upload failed' });
+        status = 'error';
+        res.status(500).json({ error: 'File upload failed' });
+        return;
       }
 
-      console.log('解析的文件信息:', files);  // 打印文件解析结果以调试
-
-      const uploadedFile = Array.isArray(files.file) ? files.file[0] : files.file;  // 处理文件为数组的情况
+      const uploadedFile = Array.isArray(files.file) ? files.file[0] : files.file;
       if (!uploadedFile) {
         console.error('未找到上传的文件');
-        return res.status(400).json({ error: 'No file uploaded' });
+        status = 'error';
+        res.status(400).json({ error: 'No file uploaded' });
+        return;
       }
 
       const filePath = uploadedFile.filepath || uploadedFile.path;
 
       if (!filePath) {
         console.error('未找到文件路径');
-        return res.status(500).json({ error: 'Failed to retrieve file path' });
+        status = 'error';
+        res.status(500).json({ error: 'Failed to retrieve file path' });
+        return;
       }
+
+      // 设置状态为“处理中”
+      status = 'processing';
+
+      // 立即推送状态更新
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+      });
+      res.write(JSON.stringify({ status: 'processing' }));
+      res.end();
 
       // 调用 OpenAI GPT-4 进行图片分析
       const configuration = new Configuration({
@@ -58,14 +76,35 @@ const handler = async (req, res) => {
           prompt: "请分析并解决这张图片中的问题，用中文回答。",
         });
 
-        const gptAnswer = response.data;  // 获取 GPT-4 的中文解答
+        gptAnswer = response.data;  // 获取 GPT-4 的中文解答
 
-        // 将解答返回给前端
-        res.status(200).json({ answer: gptAnswer });
+        // 设置状态为“完成”
+        status = 'completed';
       } catch (error) {
         console.error('Error with GPT-4:', error);
-        res.status(500).json({ error: 'Error with GPT-4 processing' });
+        status = 'error';
+      } finally {
+        // 无论处理是否成功，清空 uploads 文件夹
+        clearUploadsFolder();
       }
+    });
+  } else if (req.method === 'GET') {
+    // 处理 SSE 推送的状态
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    });
+
+    const sendStatus = () => {
+      res.write(`data: ${JSON.stringify({ status, answer: gptAnswer })}\n\n`);
+    };
+
+    sendStatus();
+    const intervalId = setInterval(sendStatus, 1000);  // 每秒发送一次状态
+
+    req.on('close', () => {
+      clearInterval(intervalId);  // 关闭连接时清除定时器
     });
   } else {
     res.status(405).json({ error: 'Method not allowed' });
@@ -73,3 +112,22 @@ const handler = async (req, res) => {
 };
 
 export default handler;
+
+// 清空上传文件夹的函数
+const clearUploadsFolder = () => {
+  const directory = './uploads';
+  fs.readdir(directory, (err, files) => {
+    if (err) {
+      console.error('读取 uploads 文件夹失败:', err);
+      return;
+    }
+
+    for (const file of files) {
+      fs.unlink(path.join(directory, file), (err) => {
+        if (err) {
+          console.error('删除文件失败:', err);
+        }
+      });
+    }
+  });
+};

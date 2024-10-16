@@ -1,17 +1,42 @@
 .container {
-  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
   padding: 20px;
-  text-align: center;
+}
+
+.title {
+  font-size: 36px;
+  margin-bottom: 20px;
+}
+
+.statusContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.statusIcon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.statusMessage {
+  font-size: 16px;
 }
 
 .answerBox {
+  width: 100%;
+  max-width: 600px;
   margin-top: 20px;
-  padding: 15px;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
+  text-align: center;
 }
 
 .text {
   font-size: 18px;
-  color: #333;
+  line-height: 1.5;
 }
