@@ -1,6 +1,6 @@
 import formidable from 'formidable';
-import openai from 'openai';
 import fs from 'fs';
+import { Configuration, OpenAIApi } from 'openai';  // 引入新版 OpenAI 客户端
 
 export const config = {
   api: {
@@ -43,14 +43,17 @@ const handler = async (req, res) => {
       }
 
       // 调用 OpenAI GPT-4 进行图片分析
-      const apiKey = process.env.OPENAI_API_KEY;
-      openai.apiKey = apiKey;
+      const configuration = new Configuration({
+        apiKey: process.env.OPENAI_API_KEY,  // 使用环境变量中的 API 密钥
+      });
+      const openai = new OpenAIApi(configuration);  // 初始化 OpenAI 客户端
 
       const imageStream = fs.createReadStream(filePath);  // 读取上传的文件
 
       try {
+        // 使用 OpenAI API 来分析图片
         const response = await openai.createImage({
-          model: "gpt-40-2024-08-06",
+          model: "gpt-4o-2024-08-06",
           file: imageStream,
           prompt: "请分析并解决这张图片中的问题，用中文回答。",
         });
