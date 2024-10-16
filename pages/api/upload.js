@@ -14,19 +14,23 @@ const handler = async (req, res) => {
 
     form.parse(req, async (err, fields, files) => {
       if (err) {
-        console.error('文件上传失败:', err);  // 添加错误日志
+        console.error('文件上传失败:', err);  // 输出错误日志
         return res.status(500).json({ error: 'File upload failed' });
       }
-
-      // 检查 files 对象是否存在，并获取文件路径
+    
+      // 打印解析出来的文件信息
+      console.log('解析的文件: ', files);
+    
       const uploadedFile = files.file;
       if (!uploadedFile) {
+        console.error('未找到上传的文件');  // 添加日志
         return res.status(400).json({ error: 'No file uploaded' });
       }
-
-      const filePath = uploadedFile.filepath || uploadedFile.path;  // 兼容不同版本的 formidable
-
+    
+      const filePath = uploadedFile.filepath || uploadedFile.path;
+    
       if (!filePath) {
+        console.error('未找到文件路径');  // 添加日志
         return res.status(500).json({ error: 'Failed to retrieve file path' });
       }
 
