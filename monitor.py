@@ -5,7 +5,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # 设置要监控的截图文件夹路径
-folder_path = r'D:\BaiduSyncdisk\Screenshots'
+folder_path = r'D:\\BaiduSyncdisk\\Screenshots'
 # 上传到 Vercel 服务器的 URL
 server_url = 'http://localhost:3000/api/upload'
 
@@ -23,7 +23,8 @@ class ScreenshotHandler(FileSystemEventHandler):
 def upload_image(image_path):
     try:
         with open(image_path, 'rb') as image_file:
-            files = {'file': image_file}
+            files = {'file': image_file}  # 确保 'file' 字段名与后端一致
+            # 使用 multipart/form-data 格式上传图片
             response = requests.post(server_url, files=files)
             if response.status_code == 200:
                 print("Image uploaded successfully!")

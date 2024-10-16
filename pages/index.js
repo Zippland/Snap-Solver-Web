@@ -6,12 +6,19 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0); // 用于显示处理进度
 
-  const handleUpload = async (file) => {
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];  // 获取用户选择的文件
+
+    if (!file) {
+      console.error('No file selected');
+      return;
+    }
+
     setLoading(true);
     setProgress(0); // 初始化进度
 
     const formData = new FormData();
-    formData.append('file', file);  // 接受文件对象
+    formData.append('file', file);  // 将文件添加到 FormData 对象
 
     try {
       const response = await fetch('/api/upload', {
@@ -47,6 +54,7 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <h1>GPT-4 中文解答</h1>
+      <input type="file" onChange={handleFileChange} /> {/* 文件上传控件 */}
       {loading ? (
         <div>
           <p>正在处理图片，请稍候...</p>
