@@ -10,14 +10,25 @@ export const config = {
 
 const handler = async (req, res) => {
   if (req.method === 'POST') {
-    const form = new formidable.IncomingForm();
+    const form = formidable({ multiples: true });  // 使用新版 formidable
 
     form.parse(req, async (err, fields, files) => {
       if (err) {
+        console.error('文件上传失败:', err);  // 添加错误日志
         return res.status(500).json({ error: 'File upload failed' });
       }
 
-      const filePath = files.file.filepath;  // 获取上传的图片文件路径
+      // 检查 files 对象是否存在，并获取文件路径
+      const uploadedFile = files.file;
+      if (!uploadedFile) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const filePath = uploadedFile.filepath || uploadedFile.path;  // 兼容不同版本的 formidable
+
+      if (!filePath) {
+        return res.status(500).json({ error: 'Failed to retrieve file path' });
+      }
 
       // 调用 OpenAI GPT-4 进行图片分析
       const apiKey = process.env.OPENAI_API_KEY;
@@ -27,7 +38,7 @@ const handler = async (req, res) => {
 
       try {
         const response = await openai.createImage({
-          model: "gpt-40-2024-08-06",
+          model: "gpt-4o-2024-08-06",
           file: imageStream,
           prompt: "请分析并解决这张图片中的问题，用中文回答。",
         });

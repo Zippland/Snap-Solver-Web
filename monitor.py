@@ -7,7 +7,7 @@ from watchdog.events import FileSystemEventHandler
 # 设置要监控的截图文件夹路径
 folder_path = r'D:\BaiduSyncdisk\Screenshots'
 # 上传到 Vercel 服务器的 URL
-server_url = 'https://snap-solver-a1i6os65o-zipplands-projects.vercel.app/api/upload'
+server_url = 'http://localhost:3000/api/upload'
 
 class ScreenshotHandler(FileSystemEventHandler):
     def on_created(self, event):
