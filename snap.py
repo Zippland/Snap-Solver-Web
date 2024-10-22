@@ -15,7 +15,7 @@ def take_screenshot():
     # 上传图片到服务器
     files = {'file': ('screenshot.png', img_byte_arr, 'image/png')}
     try:
-        response = requests.post('http://localhost:3000/upload', files=files)
+        response = requests.post('http://privatesnapsolver.vercel.app/upload', files=files)
         if response.status_code == 200:
             print("Screenshot uploaded successfully")
         else:
