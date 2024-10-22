@@ -23,7 +23,7 @@ let savedCropSettings = null; // 存储裁剪设置，初始化为空
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json({ limit: '100mb' }));
 
-// 路由：保存裁剪设置并处理图片
+// 路由：保存裁剪设置并提取文本
 app.post('/save-crop-settings-and-process', async (req, res) => {
     const { cropSettings, image } = req.body;
     console.log('Received Crop Settings:', cropSettings); // 输出接收到的裁剪数据以验证是否正确
@@ -75,7 +75,7 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
                         },
                         {
                             type: 'text',
-                            text: '请提取这张图片中的所有文字，要一字不落。'
+                            text: '请按格式提取这张图片中的所有文字，一字不落。'
                         }
                     ]
                 }
@@ -86,18 +86,25 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
                 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             }
-        }).catch(err => {
-            console.error('Error calling GPT-4o-mini API:', err);
-            if (err.response && err.response.status === 401) {
-                throw new Error('Unauthorized request. Please检查您的OpenAI API密钥。');
-            }
-            throw new Error('Failed to get response from GPT-4o-mini API.');
         });
 
         // 获取提取的文本
         const extractedText = extractTextResponse.data.choices[0].message.content.trim();
         console.log('Extracted Text:', extractedText);
 
+        // 将提取的文本返回给前端
+        res.json({ extractedText });
+    } catch (err) {
+        console.error('Error processing image or GPT request:', err);
+        res.status(500).send('An error occurred while processing the image or GPT request.');
+    }
+});
+
+// **新增路由：解题**
+app.post('/solve-problem', async (req, res) => {
+    const { extractedText } = req.body;
+
+    try {
         // **步骤2：使用“gpt-4o-2024-08-06”模型解题**
         const gptResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
             model: 'gpt-4o-2024-08-06',
@@ -113,12 +120,6 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
                 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             }
-        }).catch(err => {
-            console.error('Error calling GPT-4o-2024-08-06 API:', err);
-            if (err.response && err.response.status === 401) {
-                throw new Error('Unauthorized request. 请检查您的OpenAI API密钥。');
-            }
-            throw new Error('Failed to get response from GPT-4o-2024-08-06 API.');
         });
 
         // 获取 GPT 的回答
@@ -127,8 +128,8 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
         // 返回答案给前端
         res.json({ answer: gptAnswer });
     } catch (err) {
-        console.error('Error processing image or GPT request:', err);
-        res.status(500).send('An error occurred while processing the image or GPT request.');
+        console.error('Error calling GPT API:', err);
+        res.status(500).send('An error occurred while solving the problem.');
     }
 });
 

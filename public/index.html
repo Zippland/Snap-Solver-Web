@@ -47,7 +47,7 @@
             font-weight: bold;
             color: #555;
             margin-bottom: 15px;
-            word-wrap: break-word; /* 自动换行 */
+            word-wrap: break-word;
         }
 
         #uploaded-image {
@@ -58,7 +58,8 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        #save-crop-button {
+        #save-crop-button,
+        #solve-button {
             width: 100%;
             padding: 15px;
             background-color: #007aff;
@@ -71,27 +72,30 @@
             transition: background-color 0.3s ease;
             margin-top: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: none; /* 初始状态下隐藏 */
+            display: none;
         }
 
-        #save-crop-button:hover {
+        #save-crop-button:hover,
+        #solve-button:hover {
             background-color: #005bb5;
         }
 
-        #save-crop-button:active {
+        #save-crop-button:active,
+        #solve-button:active {
             background-color: #003d7a;
         }
 
-        #result-container {
+        #extracted-text-container,
+        #answer-container {
             margin-top: 20px;
             padding: 15px;
             background-color: #f0f0f0;
             border-radius: 15px;
             display: none;
-            word-wrap: break-word; /* 自动换行 */
-            font-size: 14px; /* 调整文字大小 */
-            line-height: 1.5; /* 调整行间距 */
-            text-align: left; /* 居左对齐 */
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: left;
         }
 
         #loading-overlay {
@@ -163,7 +167,18 @@
 
         <button id="save-crop-button">保存裁剪区域</button>
 
-        <div id="result-container"></div>
+        <!-- 新增：显示提取的题目文本 -->
+        <div id="extracted-text-container">
+            <h2>提取的题目文本：</h2>
+            <div id="extracted-text"></div>
+            <button id="solve-button">开始解题</button>
+        </div>
+
+        <!-- 修改：将答案容器的 id 改为 answer-container -->
+        <div id="answer-container">
+            <h2>解题答案：</h2>
+            <div id="answer-content"></div>
+        </div>
     </div>
 
     <!-- GitHub 图标 -->
@@ -181,36 +196,42 @@
         const uploadedImage = document.getElementById('uploaded-image');
         const saveCropButton = document.getElementById('save-crop-button');
         const instruction = document.getElementById('instruction');
-        const resultContainer = document.getElementById('result-container');
+        const extractedTextContainer = document.getElementById('extracted-text-container');
+        const extractedTextDiv = document.getElementById('extracted-text');
+        const solveButton = document.getElementById('solve-button');
+        const answerContainer = document.getElementById('answer-container');
+        const answerContent = document.getElementById('answer-content');
         const loadingOverlay = document.getElementById('loading-overlay');
         let cropper = null;
         let uploadedImageData = null;
 
         // 定制 marked.js，使其处理单个换行符为 <br>
         marked.setOptions({
-            breaks: true // 让单个换行符自动转换为 <br>，避免额外的段落间距
+            breaks: true
         });
 
         // 当服务器接收到新截图时，显示图片并初始化 Cropper.js
         socket.on('new_image_uploaded', (data) => {
-            loadingOverlay.style.display = 'none'; // 隐藏加载提示
+            loadingOverlay.style.display = 'none';
             uploadedImageData = `data:image/png;base64,${data.image}`;
             uploadedImage.src = uploadedImageData;
-            uploadedImage.style.display = 'block'; // 显示上传的图片
-            saveCropButton.style.display = 'block'; // 图片上传后显示保存按钮
-            instruction.textContent = '请使用手指或鼠标框选区域。';
+            uploadedImage.style.display = 'block';
+            saveCropButton.style.display = 'block';
+            instruction.textContent = '请使用手指或鼠标框选题目区域。';
 
-            resultContainer.innerHTML = ''; // 清空之前的答案内容
-            resultContainer.style.display = 'none'; // 隐藏答案区域
+            // 重置界面
+            extractedTextContainer.style.display = 'none';
+            answerContainer.style.display = 'none';
+            answerContent.innerHTML = '';
+            extractedTextDiv.innerHTML = '';
 
             if (cropper) {
                 cropper.destroy();
             }
-            // 初始化 Cropper.js，禁用自动裁剪框
             cropper = new Cropper(uploadedImage, {
-                aspectRatio: NaN, // 自由裁剪
+                aspectRatio: NaN,
                 viewMode: 1,
-                autoCrop: false // 禁用自动裁剪框
+                autoCrop: false
             });
         });
 
@@ -221,13 +242,13 @@
                 return;
             }
 
-            const cropData = cropper.getData(); // 获取裁剪数据
+            const cropData = cropper.getData();
             if (cropData.width <= 0 || cropData.height <= 0) {
                 alert('裁剪区域无效，请重新调整。');
                 return;
             }
 
-            loadingOverlay.style.display = 'flex'; // 显示加载动画
+            loadingOverlay.style.display = 'flex';
 
             const cropSettings = {
                 x: cropData.x,
@@ -246,13 +267,56 @@
                 .then(response => response.json())
                 .then(data => {
                     loadingOverlay.style.display = 'none';
-                    resultContainer.style.display = 'block';
-                    // 使用 marked.js 将 GPT 返回的 Markdown 转换为 HTML
-                    resultContainer.innerHTML = marked.parse(data.answer); 
+
+                    // 隐藏裁剪区域和按钮
+                    uploadedImage.style.display = 'none';
+                    saveCropButton.style.display = 'none';
+
+                    // 显示提取的题目文本
+                    extractedTextContainer.style.display = 'block';
+                    instruction.textContent = '已提取题目文本，请确认后点击“开始解题”。';
+                    extractedTextDiv.textContent = data.extractedText;
+
+                    // 显示“开始解题”按钮
+                    solveButton.style.display = 'block';
+
+                    // 销毁 Cropper 实例
+                    if (cropper) {
+                        cropper.destroy();
+                        cropper = null;
+                    }
                 })
                 .catch(err => {
                     loadingOverlay.style.display = 'none';
                     alert('处理图片时发生错误，请重试。');
+                });
+        });
+
+        // 解题按钮事件监听器
+        solveButton.addEventListener('click', () => {
+            loadingOverlay.style.display = 'flex';
+            instruction.textContent = '正在解题，请稍候...';
+
+            // 调用后端的解题接口
+            fetch('/solve-problem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ extractedText: extractedTextDiv.textContent })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    loadingOverlay.style.display = 'none';
+                    answerContainer.style.display = 'block';
+                    instruction.textContent = '解题完成，以下是答案：';
+
+                    // 使用 marked.js 渲染答案
+                    answerContent.innerHTML = marked.parse(data.answer);
+                })
+                .catch(err => {
+                    loadingOverlay.style.display = 'none';
+                    alert('解题时发生错误，请重试。');
                 });
         });
 
