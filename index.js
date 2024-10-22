@@ -13,15 +13,18 @@ const server = http.createServer(app);
 
 // 使用 CORS 中间件允许跨域请求
 app.use(cors({
-    origin: ['https://snap-solver.vercel.app', 'https://snap-solver-test.vercel.app'], // 允许的域名列表
-    methods: ['GET', 'POST'], // 允许的方法
-    allowedHeaders: ['Content-Type'] // 允许的头部
+    origin: ['https://snap-solver.vercel.app', 'https://snap-solver-test.vercel.app'], // 允许的前端域名
+    methods: ['GET', 'POST'], // 允许的 HTTP 方法
+    allowedHeaders: ['Content-Type'], // 允许的头部
+    credentials: true // 如果前端需要携带跨域 Cookie
 }));
 
+// Socket.IO 配置 CORS
 const io = new Server(server, {
     cors: {
-        origin: ['https://snap-solver.vercel.app', 'https://snap-solver-test.vercel.app'], // 允许的域名
-        methods: ['GET', 'POST']
+        origin: ['https://snap-solver.vercel.app', 'https://snap-solver-test.vercel.app'], // 允许的前端域名
+        methods: ['GET', 'POST'],
+        credentials: true // 允许跨域 Cookie 传递（如果有需要）
     },
     transports: ['polling'] // 强制使用 HTTP 长轮询
 });
