@@ -9,7 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <!-- 引入 Cropper.js 和 Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- 引入 marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -100,9 +101,9 @@
         /* 修复标题显示问题 */
         #extracted-text-container h2,
         #answer-container h2 {
-            margin-top: 0;
-            margin-bottom: 10px;
+            margin: 0 0 10px 0;
             font-size: 18px;
+            line-height: 1.2;
         }
 
         #extracted-text {
@@ -187,7 +188,7 @@
 
         <!-- 显示解题答案 -->
         <div id="answer-container">
-            <h2>解题答案：</h2>
+            <h2>解题完成，以下是答案：</h2>
             <div id="answer-content"></div>
         </div>
     </div>
@@ -319,7 +320,11 @@
                 .then(data => {
                     loadingOverlay.style.display = 'none';
                     answerContainer.style.display = 'block';
-                    instruction.textContent = '解题完成，以下是答案：';
+                    instruction.textContent = '';
+
+                    // 设置答案容器的标题
+                    const answerTitle = answerContainer.querySelector('h2');
+                    answerTitle.textContent = '解题完成，以下是答案：';
 
                     // 使用 marked.js 渲染答案
                     answerContent.innerHTML = marked.parse(data.answer);
