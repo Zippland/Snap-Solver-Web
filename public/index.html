@@ -6,168 +6,161 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snap-Solver</title>
     <!-- 引入 Google 字体 -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-    <!-- 引入 Cropper.js 和 Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <!-- 引入必要的样式和脚本 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
-    <!-- 引入 Font Awesome -->
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- 引入 marked.js -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- 引入 Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- 自定义样式 -->
     <style>
         /* 全局样式 */
+        :root {
+            --primary-color: #6366f1;
+            --background-color: #f3f4f6;
+            --text-color: #1f2937;
+            --muted-text-color: #6b7280;
+            --border-radius: 10px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
         body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
             margin: 0;
-            padding: 0;
+            padding: 20px;
             overflow-x: hidden;
         }
 
-        /* 标题样式 */
         h1 {
-            font-size: 28px;
+            font-size: 2rem;
             font-weight: 600;
             text-align: center;
-            margin: 20px 0;
-            color: #2c3e50;
+            margin-bottom: 30px;
+            color: var(--text-color);
         }
 
-        /* 容器样式 */
         #container {
             background-color: #ffffff;
-            padding: 30px 20px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 600px;
-            margin: 0 auto 30px auto;
-            transition: all 0.3s ease;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        /* 指示信息样式 */
         #instruction {
-            font-size: 18px;
-            font-weight: 500;
-            color: #7f8c8d;
-            margin-bottom: 25px;
-            word-wrap: break-word;
-            transition: color 0.3s ease;
+            font-size: 1rem;
+            color: var(--muted-text-color);
+            margin-bottom: 20px;
+            text-align: center;
         }
 
-        /* 图片样式 */
         #uploaded-image {
             width: 100%;
-            border-radius: 12px;
+            border-radius: var(--border-radius);
             display: none;
             margin-bottom: 20px;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
         }
 
-        /* 按钮样式 */
         #save-crop-button {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #6c5ce7 0%, #0984e3 100%);
+            background: var(--primary-color);
             border: none;
-            border-radius: 30px;
-            color: white;
-            font-size: 18px;
-            font-weight: 600;
+            border-radius: var(--border-radius);
+            color: #fff;
+            font-size: 1rem;
             cursor: pointer;
-            margin-top: 15px;
-            box-shadow: 0 8px 16px rgba(108, 92, 231, 0.3);
-            transition: all 0.3s ease;
+            transition: background 0.3s;
             display: none;
         }
 
         #save-crop-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(108, 92, 231, 0.4);
+            background: #4f46e5;
         }
 
-        #save-crop-button:active {
-            transform: translateY(0);
-            box-shadow: 0 6px 12px rgba(108, 92, 231, 0.2);
-        }
-
-        /* 文本容器样式 */
         #extracted-text-container,
         #answer-container {
             margin-top: 30px;
-            padding: 25px;
+            padding: 30px;
             background-color: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
             display: none;
-            word-wrap: break-word;
-            font-size: 16px;
-            line-height: 1.6;
-            text-align: left;
-            transition: all 0.3s ease;
         }
 
-        /* 标题样式 */
         #extracted-text-container h2,
         #answer-container h2 {
-            margin: 0 0 15px 0;
-            font-size: 20px;
-            font-weight: 600;
-            color: #2d3436;
-            position: relative;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
         }
 
-        /* 标题下划线 */
-        #extracted-text-container h2::after,
-        #answer-container h2::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -5px;
-            width: 50px;
-            height: 3px;
-            background: linear-gradient(135deg, #6c5ce7 0%, #0984e3 100%);
-            border-radius: 2px;
-        }
-
-        /* 提取的文本样式 */
         #extracted-text {
-            max-height: 300px;
-            overflow-y: auto;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-color);
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            resize: vertical;
+            min-height: 100px;
         }
 
-        /* 加载遮罩层样式 */
+        #solve-button {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: var(--border-radius);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #solve-button:hover {
+            background: #4f46e5;
+        }
+
+        #answer-content {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-color);
+        }
+
         #loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(243, 244, 246, 0.9);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
             flex-direction: column;
+            z-index: 1000;
         }
 
         #loading-animation {
             width: 60px;
             height: 60px;
-            border: 6px solid rgba(0, 0, 0, 0.1);
-            border-top-color: #0984e3;
+            border: 6px solid rgba(0, 0, 0, 0.05);
+            border-top-color: var(--primary-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
         }
 
         #loading-text {
-            font-size: 18px;
-            color: #636e72;
+            font-size: 1rem;
+            color: var(--muted-text-color);
         }
 
         @keyframes spin {
@@ -176,53 +169,55 @@
             }
         }
 
-        /* GitHub 图标样式 */
         #github-link {
-            margin-top: 20px;
+            margin-top: 40px;
             text-align: center;
-            color: #636e72;
+            color: var(--muted-text-color);
         }
 
         #github-link a {
-            color: #636e72;
+            color: var(--muted-text-color);
             text-decoration: none;
-            font-size: 24px;
-            transition: color 0.3s ease;
+            font-size: 1.5rem;
+            transition: color 0.3s;
         }
 
         #github-link a:hover {
-            color: #2d3436;
+            color: var(--text-color);
         }
 
         #github-link span {
-            font-size: 14px;
+            font-size: 0.9rem;
             display: block;
             margin-top: 10px;
-            font-weight: 400;
         }
 
-        /* 响应式设计 */
         @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            #container {
+                padding: 20px;
+            }
+
             h1 {
-                font-size: 24px;
+                font-size: 1.5rem;
             }
 
-            #instruction {
-                font-size: 16px;
-            }
-
-            #save-crop-button {
-                font-size: 16px;
+            #save-crop-button,
+            #solve-button {
+                font-size: 0.9rem;
             }
 
             #extracted-text-container h2,
             #answer-container h2 {
-                font-size: 18px;
+                font-size: 1.25rem;
             }
 
-            #extracted-text-container,
-            #answer-container {
-                padding: 20px;
+            #extracted-text,
+            #answer-content {
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -232,31 +227,30 @@
     <h1>Snap-Solver</h1>
 
     <div id="container">
-        <p id="instruction">请用电脑端向此设备传送截图。</p>
+        <p id="instruction">请使用电脑或其他设备向此设备发送截图。</p>
 
         <div id="loading-overlay">
             <div id="loading-animation"></div>
-            <div id="loading-text">正在处理中，请稍候...</div>
+            <div id="loading-text">处理中，请稍候...</div>
         </div>
 
         <img id="uploaded-image" src="" alt="上传的截图" />
 
         <button id="save-crop-button">开始识别</button>
 
-        <!-- 显示提取的题目文本 -->
         <div id="extracted-text-container">
             <h2>提取的题目文本</h2>
-            <div id="extracted-text"></div>
+            <!-- 将提取的文本改为可编辑的 textarea -->
+            <textarea id="extracted-text"></textarea>
+            <button id="solve-button">重新解答</button>
         </div>
 
-        <!-- 显示解题答案 -->
         <div id="answer-container">
             <h2>解题答案</h2>
             <div id="answer-content"></div>
         </div>
     </div>
 
-    <!-- GitHub 图标 -->
     <div id="github-link">
         <a href="https://github.com/Zippland/Snap-Solver" target="_blank">
             <i class="fab fa-github"></i>
@@ -264,7 +258,7 @@
         <span>喜欢这个项目？去 GitHub 给个 Star！</span>
     </div>
 
-    <!-- 引入 Cropper.js、Socket.IO 和 marked.js -->
+    <!-- 引入必要的脚本 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -274,7 +268,8 @@
         const saveCropButton = document.getElementById('save-crop-button');
         const instruction = document.getElementById('instruction');
         const extractedTextContainer = document.getElementById('extracted-text-container');
-        const extractedTextDiv = document.getElementById('extracted-text');
+        const extractedTextArea = document.getElementById('extracted-text');
+        const solveButton = document.getElementById('solve-button');
         const answerContainer = document.getElementById('answer-container');
         const answerContent = document.getElementById('answer-content');
         const loadingOverlay = document.getElementById('loading-overlay');
@@ -282,29 +277,22 @@
         let cropper = null;
         let uploadedImageData = null;
 
-        // 定制 marked.js，使其处理单个换行符为 <br>
         marked.setOptions({
             breaks: true
         });
 
-        // 当服务器接收到新截图时，显示图片并初始化 Cropper.js
         socket.on('new_image_uploaded', (data) => {
             loadingOverlay.style.display = 'none';
             uploadedImageData = `data:image/png;base64,${data.image}`;
             uploadedImage.src = uploadedImageData;
             uploadedImage.style.display = 'block';
-            saveCropButton.style.display = 'inline-block';
-            instruction.textContent = '请使用手指或鼠标框选题目区域。';
+            saveCropButton.style.display = 'block';
+            instruction.textContent = '请框选题目区域。';
 
-            // 添加淡入动画
-            uploadedImage.classList.add('animate__animated', 'animate__fadeIn');
-            saveCropButton.classList.add('animate__animated', 'animate__fadeIn');
-
-            // 重置界面
             extractedTextContainer.style.display = 'none';
             answerContainer.style.display = 'none';
             answerContent.innerHTML = '';
-            extractedTextDiv.innerHTML = '';
+            extractedTextArea.value = '';
 
             if (cropper) {
                 cropper.destroy();
@@ -317,21 +305,20 @@
             });
         });
 
-        // 保存裁剪范围的按钮事件监听器
         saveCropButton.addEventListener('click', () => {
             if (!cropper) {
-                alert('没有图片可保存裁剪区域。');
+                alert('没有图片可裁剪。');
                 return;
             }
 
             const cropData = cropper.getData();
             if (cropData.width <= 0 || cropData.height <= 0) {
-                alert('裁剪区域无效，请重新调整。');
+                alert('请选择有效的裁剪区域。');
                 return;
             }
 
             loadingOverlay.style.display = 'flex';
-            loadingText.textContent = '正在识别文字，请稍候...';
+            loadingText.textContent = '识别文字中...';
 
             const cropSettings = {
                 x: cropData.x,
@@ -349,40 +336,43 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    // 隐藏截图预览和裁剪按钮
                     uploadedImage.style.display = 'none';
                     saveCropButton.style.display = 'none';
 
-                    // 销毁 Cropper 实例
                     if (cropper) {
                         cropper.destroy();
                         cropper = null;
                     }
 
-                    // 显示提取的题目文本
                     extractedTextContainer.style.display = 'block';
-                    instruction.textContent = '已提取题目文本，正在解题，请稍候...';
+                    instruction.textContent = '如有需要，您可以修改提取的文本，然后点击“重新解答”。';
 
-                    // 使用 marked.js 渲染提取的文本
-                    extractedTextDiv.innerHTML = marked.parse(data.extractedText);
+                    extractedTextArea.value = data.extractedText;
 
-                    // 添加淡入动画
-                    extractedTextContainer.classList.add('animate__animated', 'animate__fadeIn');
-
-                    // 直接调用解题函数
+                    // 自动调用解题函数
                     solveProblem(data.extractedText);
+
                 })
                 .catch(err => {
                     loadingOverlay.style.display = 'none';
-                    alert('处理图片时发生错误，请重试。');
+                    alert('处理图片时出错，请重试。');
                 });
         });
 
-        // 解题函数
-        function solveProblem(extractedText) {
-            loadingText.textContent = '正在解题，请稍候...';
+        solveButton.addEventListener('click', () => {
+            const userText = extractedTextArea.value.trim();
+            if (!userText) {
+                alert('请输入有效的文本。');
+                return;
+            }
 
-            // 调用后端的解题接口
+            solveProblem(userText);
+        });
+
+        function solveProblem(extractedText) {
+            loadingOverlay.style.display = 'flex';
+            loadingText.textContent = '解题中...';
+
             fetch('/solve-problem', {
                 method: 'POST',
                 headers: {
@@ -396,22 +386,17 @@
                     answerContainer.style.display = 'block';
                     instruction.textContent = '';
 
-                    // 使用 marked.js 渲染答案
                     answerContent.innerHTML = marked.parse(data.answer);
-
-                    // 添加淡入动画
-                    answerContainer.classList.add('animate__animated', 'animate__fadeIn');
                 })
                 .catch(err => {
                     loadingOverlay.style.display = 'none';
-                    alert('解题时发生错误，请重试。');
+                    alert('解题时出错，请重试。');
                 });
         }
 
-        // 上传图片时显示加载提示
         socket.on('uploading_image', () => {
             loadingOverlay.style.display = 'flex';
-            loadingText.textContent = '正在上传图片，请稍候...';
+            loadingText.textContent = '上传图片中...';
             instruction.textContent = '';
         });
     </script>
