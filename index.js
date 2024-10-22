@@ -75,7 +75,7 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
                         },
                         {
                             type: 'text',
-                            text: '请按格式提取这张图片中的所有文字，一字不落。'
+                            text: '请按格式提取这张图片中的所有内容，一字不落。'
                         }
                     ]
                 }

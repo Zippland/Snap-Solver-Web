@@ -47,6 +47,7 @@
             box-shadow: var(--box-shadow);
             max-width: 800px;
             margin: 0 auto;
+            overflow: hidden;
         }
 
         #instruction {
@@ -56,11 +57,33 @@
             text-align: center;
         }
 
-        #uploaded-image {
+        /* 上传图标样式 */
+        .upload-icon {
+            font-size: 4rem;
+            color: var(--muted-text-color);
+            display: block;
+            margin: 0 auto 10px;
+            text-align: center;
+        }
+
+        /* 新增的图像容器样式 */
+        #image-wrapper {
+            position: relative;
             width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            margin: 0 auto;
+            padding: 10px;
+            box-sizing: border-box;
+            display: none; /* 默认隐藏 */
+        }
+
+        #uploaded-image {
+            max-width: 100%;
+            height: auto;
             border-radius: var(--border-radius);
-            display: none;
-            margin-bottom: 20px;
+            display: block;
+            margin: 0 auto;
         }
 
         #save-crop-button {
@@ -73,7 +96,7 @@
             font-size: 1rem;
             cursor: pointer;
             transition: background 0.3s;
-            display: none;
+            display: none; /* 默认隐藏 */
         }
 
         #save-crop-button:hover {
@@ -219,6 +242,10 @@
             #answer-content {
                 font-size: 0.8rem;
             }
+
+            .upload-icon {
+                font-size: 3rem;
+            }
         }
     </style>
 </head>
@@ -227,6 +254,8 @@
     <h1>Snap-Solver</h1>
 
     <div id="container">
+        <!-- 上传图标和提示 -->
+        <i class="fas fa-cloud-upload-alt upload-icon"></i>
         <p id="instruction">请使用电脑或其他设备向此设备发送截图。</p>
 
         <div id="loading-overlay">
@@ -234,7 +263,10 @@
             <div id="loading-text">处理中，请稍候...</div>
         </div>
 
-        <img id="uploaded-image" src="" alt="上传的截图" />
+        <!-- 新增的图像容器，默认隐藏 -->
+        <div id="image-wrapper">
+            <img id="uploaded-image" src="" alt="上传的截图" />
+        </div>
 
         <button id="save-crop-button">开始识别</button>
 
@@ -274,6 +306,8 @@
         const answerContent = document.getElementById('answer-content');
         const loadingOverlay = document.getElementById('loading-overlay');
         const loadingText = document.getElementById('loading-text');
+        const imageWrapper = document.getElementById('image-wrapper');
+        const uploadIcon = document.querySelector('.upload-icon');
         let cropper = null;
         let uploadedImageData = null;
 
@@ -285,9 +319,10 @@
             loadingOverlay.style.display = 'none';
             uploadedImageData = `data:image/png;base64,${data.image}`;
             uploadedImage.src = uploadedImageData;
-            uploadedImage.style.display = 'block';
+            imageWrapper.style.display = 'block';
             saveCropButton.style.display = 'block';
             instruction.textContent = '请框选题目区域。';
+            uploadIcon.style.display = 'none'; // 隐藏上传图标
 
             extractedTextContainer.style.display = 'none';
             answerContainer.style.display = 'none';
@@ -298,10 +333,34 @@
                 cropper.destroy();
                 cropper = null;
             }
+
+            // 将 Cropper 应用于 #uploaded-image
             cropper = new Cropper(uploadedImage, {
                 aspectRatio: NaN,
                 viewMode: 1,
-                autoCrop: false
+                autoCrop: false,
+                responsive: true,
+                background: false,
+                modal: false,
+                guides: false,
+                center: true,
+                highlight: false,
+                cropBoxResizable: true,
+                cropBoxMovable: true,
+                dragMode: 'crop',
+                minCropBoxWidth: 50,
+                minCropBoxHeight: 50,
+                ready() {
+                    // 设置初始裁剪框位置，使其不紧贴边缘
+                    const containerData = cropper.getContainerData();
+                    const cropBoxData = {
+                        left: containerData.width * 0.1,
+                        top: containerData.height * 0.1,
+                        width: containerData.width * 0.8,
+                        height: containerData.height * 0.8
+                    };
+                    cropper.setCropBoxData(cropBoxData);
+                }
             });
         });
 
@@ -336,7 +395,7 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    uploadedImage.style.display = 'none';
+                    imageWrapper.style.display = 'none';
                     saveCropButton.style.display = 'none';
 
                     if (cropper) {
