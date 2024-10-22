@@ -1,23 +1,24 @@
 {
-  "name": "snap_solver",
+  "name": "snap-solver",
   "version": "1.0.0",
+  "description": "Snap-Solver is a tool for uploading and processing screenshots, and providing solutions through GPT.",
+  "main": "index.js",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
+  "author": "Your Name",
+  "license": "MIT",
   "dependencies": {
-    "formidable": "^3.5.1",
-    "next": "latest",
-    "openai": "^3.0.0",
-    "react": "latest",
-    "react-dom": "latest",
-    "tailwindcss": "^3.0.0"
+    "axios": "^0.27.2",
+    "cropperjs": "^1.5.12",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "multer": "^1.4.3",
+    "sharp": "^0.29.3",
+    "socket.io": "^4.0.1"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.20",
-    "eslint": "^9.12.0",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.13"
+    "nodemon": "^2.0.7"
   }
 }
