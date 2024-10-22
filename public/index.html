@@ -6,131 +6,168 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snap-Solver</title>
     <!-- 引入 Google 字体 -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <!-- 引入 Cropper.js 和 Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <!-- 引入 Font Awesome -->
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- 引入 marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 引入 Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
+        /* 全局样式 */
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f7f7f7;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f0f2f5;
             color: #333;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            overflow-x: hidden;
         }
 
+        /* 标题样式 */
         h1 {
-            font-size: 22px;
+            font-size: 28px;
             font-weight: 600;
             text-align: center;
-            margin-bottom: 10px;
-            color: #333;
+            margin: 20px 0;
+            color: #2c3e50;
         }
 
+        /* 容器样式 */
         #container {
             background-color: #ffffff;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            text-align: center;
+            padding: 30px 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+            transition: all 0.3s ease;
         }
 
+        /* 指示信息样式 */
         #instruction {
-            font-size: 16px;
-            font-weight: bold;
-            color: #555;
-            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 500;
+            color: #7f8c8d;
+            margin-bottom: 25px;
             word-wrap: break-word;
+            transition: color 0.3s ease;
         }
 
+        /* 图片样式 */
         #uploaded-image {
             width: 100%;
             border-radius: 12px;
             display: none;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
 
+        /* 按钮样式 */
         #save-crop-button {
             width: 100%;
             padding: 15px;
-            background-color: #007aff;
+            background: linear-gradient(135deg, #6c5ce7 0%, #0984e3 100%);
             border: none;
-            border-radius: 25px;
+            border-radius: 30px;
             color: white;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-top: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+            box-shadow: 0 8px 16px rgba(108, 92, 231, 0.3);
+            transition: all 0.3s ease;
             display: none;
         }
 
         #save-crop-button:hover {
-            background-color: #005bb5;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(108, 92, 231, 0.4);
         }
 
         #save-crop-button:active {
-            background-color: #003d7a;
+            transform: translateY(0);
+            box-shadow: 0 6px 12px rgba(108, 92, 231, 0.2);
         }
 
+        /* 文本容器样式 */
         #extracted-text-container,
         #answer-container {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f0f0f0;
-            border-radius: 15px;
+            margin-top: 30px;
+            padding: 25px;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
             display: none;
             word-wrap: break-word;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 16px;
+            line-height: 1.6;
             text-align: left;
+            transition: all 0.3s ease;
         }
 
-        /* 修复标题显示问题 */
+        /* 标题样式 */
         #extracted-text-container h2,
         #answer-container h2 {
-            margin: 0 0 10px 0;
-            font-size: 18px;
-            line-height: 1.2;
+            margin: 0 0 15px 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3436;
+            position: relative;
         }
 
+        /* 标题下划线 */
+        #extracted-text-container h2::after,
+        #answer-container h2::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -5px;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(135deg, #6c5ce7 0%, #0984e3 100%);
+            border-radius: 2px;
+        }
+
+        /* 提取的文本样式 */
         #extracted-text {
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
         }
 
+        /* 加载遮罩层样式 */
         #loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.9);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            flex-direction: column;
         }
 
         #loading-animation {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.2);
-            border-top-color: #ffffff;
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #0984e3;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        #loading-text {
+            font-size: 18px;
+            color: #636e72;
         }
 
         @keyframes spin {
@@ -141,27 +178,52 @@
 
         /* GitHub 图标样式 */
         #github-link {
-            margin-top: 15px;
+            margin-top: 20px;
             text-align: center;
-            color: #007aff;
+            color: #636e72;
         }
 
         #github-link a {
-            color: #007aff;
+            color: #636e72;
             text-decoration: none;
-            font-size: 18px;
+            font-size: 24px;
             transition: color 0.3s ease;
         }
 
         #github-link a:hover {
-            color: #005bb5;
+            color: #2d3436;
         }
 
         #github-link span {
-            font-size: 12px;
+            font-size: 14px;
             display: block;
-            margin-top: 5px;
+            margin-top: 10px;
             font-weight: 400;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 24px;
+            }
+
+            #instruction {
+                font-size: 16px;
+            }
+
+            #save-crop-button {
+                font-size: 16px;
+            }
+
+            #extracted-text-container h2,
+            #answer-container h2 {
+                font-size: 18px;
+            }
+
+            #extracted-text-container,
+            #answer-container {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -174,21 +236,22 @@
 
         <div id="loading-overlay">
             <div id="loading-animation"></div>
+            <div id="loading-text">正在处理中，请稍候...</div>
         </div>
 
         <img id="uploaded-image" src="" alt="上传的截图" />
 
-        <button id="save-crop-button">保存裁剪区域</button>
+        <button id="save-crop-button">开始识别</button>
 
         <!-- 显示提取的题目文本 -->
         <div id="extracted-text-container">
-            <h2>提取的题目文本：</h2>
+            <h2>提取的题目文本</h2>
             <div id="extracted-text"></div>
         </div>
 
         <!-- 显示解题答案 -->
         <div id="answer-container">
-            <h2>解题完成，以下是答案：</h2>
+            <h2>解题答案</h2>
             <div id="answer-content"></div>
         </div>
     </div>
@@ -215,6 +278,7 @@
         const answerContainer = document.getElementById('answer-container');
         const answerContent = document.getElementById('answer-content');
         const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
         let cropper = null;
         let uploadedImageData = null;
 
@@ -229,8 +293,12 @@
             uploadedImageData = `data:image/png;base64,${data.image}`;
             uploadedImage.src = uploadedImageData;
             uploadedImage.style.display = 'block';
-            saveCropButton.style.display = 'block';
+            saveCropButton.style.display = 'inline-block';
             instruction.textContent = '请使用手指或鼠标框选题目区域。';
+
+            // 添加淡入动画
+            uploadedImage.classList.add('animate__animated', 'animate__fadeIn');
+            saveCropButton.classList.add('animate__animated', 'animate__fadeIn');
 
             // 重置界面
             extractedTextContainer.style.display = 'none';
@@ -263,6 +331,7 @@
             }
 
             loadingOverlay.style.display = 'flex';
+            loadingText.textContent = '正在识别文字，请稍候...';
 
             const cropSettings = {
                 x: cropData.x,
@@ -297,6 +366,9 @@
                     // 使用 marked.js 渲染提取的文本
                     extractedTextDiv.innerHTML = marked.parse(data.extractedText);
 
+                    // 添加淡入动画
+                    extractedTextContainer.classList.add('animate__animated', 'animate__fadeIn');
+
                     // 直接调用解题函数
                     solveProblem(data.extractedText);
                 })
@@ -308,6 +380,8 @@
 
         // 解题函数
         function solveProblem(extractedText) {
+            loadingText.textContent = '正在解题，请稍候...';
+
             // 调用后端的解题接口
             fetch('/solve-problem', {
                 method: 'POST',
@@ -322,12 +396,11 @@
                     answerContainer.style.display = 'block';
                     instruction.textContent = '';
 
-                    // 设置答案容器的标题
-                    const answerTitle = answerContainer.querySelector('h2');
-                    answerTitle.textContent = '解题完成，以下是答案：';
-
                     // 使用 marked.js 渲染答案
                     answerContent.innerHTML = marked.parse(data.answer);
+
+                    // 添加淡入动画
+                    answerContainer.classList.add('animate__animated', 'animate__fadeIn');
                 })
                 .catch(err => {
                     loadingOverlay.style.display = 'none';
@@ -338,7 +411,8 @@
         // 上传图片时显示加载提示
         socket.on('uploading_image', () => {
             loadingOverlay.style.display = 'flex';
-            instruction.textContent = '正在上传图片，请稍候...';
+            loadingText.textContent = '正在上传图片，请稍候...';
+            instruction.textContent = '';
         });
     </script>
 </body>
