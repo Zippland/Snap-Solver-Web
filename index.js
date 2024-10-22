@@ -1,5 +1,3 @@
-// index.js（后端服务器）
-
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
@@ -75,7 +73,7 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
                         },
                         {
                             type: 'text',
-                            text: '请按格式提取这张图片中的所有内容，一字不落。'
+                            text: '请按格式提取这张图片中的所有内容，一字不落。如果出现图片，请按格式详细描述图片，越详细越好。'
                         }
                     ]
                 }
@@ -100,7 +98,78 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
     }
 });
 
-// **新增路由：解题**
+// **新增路由：直接使用图片解题**
+app.post('/solve-problem-with-image', async (req, res) => {
+    const { cropSettings, image } = req.body;
+
+    try {
+        const buffer = Buffer.from(image.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+        let img = sharp(buffer);
+
+        // 获取图片的元数据
+        const metadata = await img.metadata();
+        const imgWidth = metadata.width;
+        const imgHeight = metadata.height;
+
+        const cropX = Math.max(0, Math.min(Math.round(cropSettings.x), imgWidth));
+        const cropY = Math.max(0, Math.min(Math.round(cropSettings.y), imgHeight));
+
+        if (cropX + cropSettings.width > imgWidth) {
+            cropSettings.width = imgWidth - cropX;
+        }
+        if (cropY + cropSettings.height > imgHeight) {
+            cropSettings.height = imgHeight - cropY;
+        }
+
+        const cropWidth = Math.max(1, Math.min(Math.round(cropSettings.width), imgWidth - cropX));
+        const cropHeight = Math.max(1, Math.min(Math.round(cropSettings.height), imgHeight - cropY));
+
+        // 裁剪图片
+        img = img.extract({ left: cropX, top: cropY, width: cropWidth, height: cropHeight });
+
+        const croppedImageBuffer = await img.png().toBuffer();
+        const base64CroppedImage = croppedImageBuffer.toString('base64');
+
+        // 使用“gpt-4o-2024-08-06”模型解题
+        const gptResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
+            model: 'gpt-4o-2024-08-06',
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: `data:image/png;base64,${base64CroppedImage}`
+                            }
+                        },
+                        {
+                            type: 'text',
+                            text: '请解答这张图片中的题目。请解答以下题目。如果是选择题，请先仔细分析题目中的每一个选项，然后给我正确答案。'
+                        }
+                    ]
+                }
+            ],
+            max_tokens: 1000
+        }, {
+            headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // 获取 GPT 的回答
+        const gptAnswer = gptResponse.data.choices[0].message.content.trim();
+
+        // 返回答案给前端
+        res.json({ answer: gptAnswer });
+    } catch (err) {
+        console.error('Error solving problem with image:', err);
+        res.status(500).send('An error occurred while solving the problem with image.');
+    }
+});
+
+// **原有路由：解题**
 app.post('/solve-problem', async (req, res) => {
     const { extractedText } = req.body;
 
