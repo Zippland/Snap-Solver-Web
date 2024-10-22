@@ -239,6 +239,7 @@
 
             if (cropper) {
                 cropper.destroy();
+                cropper = null;
             }
             cropper = new Cropper(uploadedImage, {
                 aspectRatio: NaN,
@@ -282,6 +283,12 @@
                     uploadedImage.style.display = 'none';
                     saveCropButton.style.display = 'none';
 
+                    // 销毁 Cropper 实例
+                    if (cropper) {
+                        cropper.destroy();
+                        cropper = null;
+                    }
+
                     // 显示提取的题目文本
                     extractedTextContainer.style.display = 'block';
                     instruction.textContent = '已提取题目文本，正在解题，请稍候...';
@@ -316,9 +323,6 @@
 
                     // 使用 marked.js 渲染答案
                     answerContent.innerHTML = marked.parse(data.answer);
-
-                    // 如果需要，可以在此隐藏提取的题目文本容器
-                    // extractedTextContainer.style.display = 'none';
                 })
                 .catch(err => {
                     loadingOverlay.style.display = 'none';
