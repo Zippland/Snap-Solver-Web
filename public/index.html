@@ -7,9 +7,11 @@
     <title>Snap-Solver</title>
     <!-- 引入 Google 字体 -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <!-- 引入 Cropper.js 和 Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- 引入 marked.js -->
+    <!-- 引入 marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -98,6 +100,11 @@
             text-align: left;
         }
 
+        #extracted-text {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
         #loading-overlay {
             position: fixed;
             top: 0;
@@ -167,14 +174,14 @@
 
         <button id="save-crop-button">保存裁剪区域</button>
 
-        <!-- 新增：显示提取的题目文本 -->
+        <!-- 显示提取的题目文本 -->
         <div id="extracted-text-container">
             <h2>提取的题目文本：</h2>
             <div id="extracted-text"></div>
             <button id="solve-button">开始解题</button>
         </div>
 
-        <!-- 修改：将答案容器的 id 改为 answer-container -->
+        <!-- 显示解题答案 -->
         <div id="answer-container">
             <h2>解题答案：</h2>
             <div id="answer-content"></div>
@@ -189,8 +196,10 @@
         <span>喜欢这个项目？去 GitHub 给个 Star！</span>
     </div>
 
+    <!-- 引入 Cropper.js、Socket.IO 和 marked.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         const socket = io();
         const uploadedImage = document.getElementById('uploaded-image');
@@ -275,7 +284,9 @@
                     // 显示提取的题目文本
                     extractedTextContainer.style.display = 'block';
                     instruction.textContent = '已提取题目文本，请确认后点击“开始解题”。';
-                    extractedTextDiv.textContent = data.extractedText;
+
+                    // 使用 marked.js 渲染提取的文本
+                    extractedTextDiv.innerHTML = marked.parse(data.extractedText);
 
                     // 显示“开始解题”按钮
                     solveButton.style.display = 'block';
