@@ -58,7 +58,7 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
 
         // 调用 GPT 服务进行解答
         const gptResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o-2024-08-06',
             messages: [
                 {
                     role: 'user',
