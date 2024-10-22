@@ -97,6 +97,14 @@
             text-align: left;
         }
 
+        /* 修复标题显示问题 */
+        #extracted-text-container h2,
+        #answer-container h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
         #extracted-text {
             max-height: 200px;
             overflow-y: auto;
@@ -270,6 +278,10 @@
             })
                 .then(response => response.json())
                 .then(data => {
+                    // 隐藏截图预览和裁剪按钮
+                    uploadedImage.style.display = 'none';
+                    saveCropButton.style.display = 'none';
+
                     // 显示提取的题目文本
                     extractedTextContainer.style.display = 'block';
                     instruction.textContent = '已提取题目文本，正在解题，请稍候...';
@@ -305,15 +317,8 @@
                     // 使用 marked.js 渲染答案
                     answerContent.innerHTML = marked.parse(data.answer);
 
-                    // 隐藏裁剪区域和按钮
-                    uploadedImage.style.display = 'none';
-                    saveCropButton.style.display = 'none';
-
-                    // 销毁 Cropper 实例
-                    if (cropper) {
-                        cropper.destroy();
-                        cropper = null;
-                    }
+                    // 如果需要，可以在此隐藏提取的题目文本容器
+                    // extractedTextContainer.style.display = 'none';
                 })
                 .catch(err => {
                     loadingOverlay.style.display = 'none';
