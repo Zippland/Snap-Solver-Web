@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const cors = require('cors'); // 引入 CORS 中间件
 const multer = require('multer');
 const path = require('path');
 const sharp = require('sharp');
@@ -9,9 +10,17 @@ const axios = require('axios');
 
 const app = express();
 const server = http.createServer(app);
+
+// 使用 CORS 中间件允许跨域请求
+app.use(cors({
+    origin: ['https://snap-solver.vercel.app', 'https://snap-solver-test.vercel.app'], // 允许的域名列表
+    methods: ['GET', 'POST'], // 允许的方法
+    allowedHeaders: ['Content-Type'] // 允许的头部
+}));
+
 const io = new Server(server, {
     cors: {
-        origin: '*', // 允许所有域名请求，或设置特定的域名
+        origin: ['https://snap-solver.vercel.app', 'https://snap-solver-test.vercel.app'], // 允许的域名
         methods: ['GET', 'POST']
     },
     transports: ['polling'] // 强制使用 HTTP 长轮询

@@ -176,7 +176,8 @@
     <script>
         // 初始化 socket.io，并指定服务端地址，使用 HTTP 长轮询
         const socket = io('https://snap-solver.vercel.app', {
-            transports: ['polling'] // 强制使用 HTTP 长轮询
+            transports: ['polling'], // 强制使用 HTTP 长轮询
+            withCredentials: true  // 允许跨域 cookie 传输（如果有需要）
         });
 
         const uploadedImage = document.getElementById('uploaded-image');
