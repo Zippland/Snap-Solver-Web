@@ -60,8 +60,7 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        #save-crop-button,
-        #solve-button {
+        #save-crop-button {
             width: 100%;
             padding: 15px;
             background-color: #007aff;
@@ -77,13 +76,11 @@
             display: none;
         }
 
-        #save-crop-button:hover,
-        #solve-button:hover {
+        #save-crop-button:hover {
             background-color: #005bb5;
         }
 
-        #save-crop-button:active,
-        #solve-button:active {
+        #save-crop-button:active {
             background-color: #003d7a;
         }
 
@@ -178,7 +175,6 @@
         <div id="extracted-text-container">
             <h2>提取的题目文本：</h2>
             <div id="extracted-text"></div>
-            <button id="solve-button">开始解题</button>
         </div>
 
         <!-- 显示解题答案 -->
@@ -207,7 +203,6 @@
         const instruction = document.getElementById('instruction');
         const extractedTextContainer = document.getElementById('extracted-text-container');
         const extractedTextDiv = document.getElementById('extracted-text');
-        const solveButton = document.getElementById('solve-button');
         const answerContainer = document.getElementById('answer-container');
         const answerContent = document.getElementById('answer-content');
         const loadingOverlay = document.getElementById('loading-overlay');
@@ -275,27 +270,15 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    loadingOverlay.style.display = 'none';
-
-                    // 隐藏裁剪区域和按钮
-                    uploadedImage.style.display = 'none';
-                    saveCropButton.style.display = 'none';
-
                     // 显示提取的题目文本
                     extractedTextContainer.style.display = 'block';
-                    instruction.textContent = '已提取题目文本，请确认后点击“开始解题”。';
+                    instruction.textContent = '已提取题目文本，正在解题，请稍候...';
 
                     // 使用 marked.js 渲染提取的文本
                     extractedTextDiv.innerHTML = marked.parse(data.extractedText);
 
-                    // 显示“开始解题”按钮
-                    solveButton.style.display = 'block';
-
-                    // 销毁 Cropper 实例
-                    if (cropper) {
-                        cropper.destroy();
-                        cropper = null;
-                    }
+                    // 直接调用解题函数
+                    solveProblem(data.extractedText);
                 })
                 .catch(err => {
                     loadingOverlay.style.display = 'none';
@@ -303,18 +286,15 @@
                 });
         });
 
-        // 解题按钮事件监听器
-        solveButton.addEventListener('click', () => {
-            loadingOverlay.style.display = 'flex';
-            instruction.textContent = '正在解题，请稍候...';
-
+        // 解题函数
+        function solveProblem(extractedText) {
             // 调用后端的解题接口
             fetch('/solve-problem', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ extractedText: extractedTextDiv.textContent })
+                body: JSON.stringify({ extractedText })
             })
                 .then(response => response.json())
                 .then(data => {
@@ -324,12 +304,22 @@
 
                     // 使用 marked.js 渲染答案
                     answerContent.innerHTML = marked.parse(data.answer);
+
+                    // 隐藏裁剪区域和按钮
+                    uploadedImage.style.display = 'none';
+                    saveCropButton.style.display = 'none';
+
+                    // 销毁 Cropper 实例
+                    if (cropper) {
+                        cropper.destroy();
+                        cropper = null;
+                    }
                 })
                 .catch(err => {
                     loadingOverlay.style.display = 'none';
                     alert('解题时发生错误，请重试。');
                 });
-        });
+        }
 
         // 上传图片时显示加载提示
         socket.on('uploading_image', () => {
