@@ -35,24 +35,42 @@ Snap-Solver/
 
 ## 使用步骤
 
-### 1. 在 Vercel 上部署
-
-#### 一键部署
-
-点击以下按钮即可一键将项目部署到 Vercel：
-
-[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Zippland/Snap-Solver&env=OPENAI_API_KEY&envDescription=Your%20OpenAI%20API%20Key%20needed%20to%20process%20the%20image%20content)
+### 1. 在 Heroku 上部署
 
 #### 部署步骤
 
-1. 点击上面的 **Deploy to Vercel** 按钮。
-2. 在跳转到的页面中，登录你的 Vercel 账号（如果还没有账号，先注册）。
-3. 你将看到环境变量配置界面，输入你的 OpenAI API Key：
+1. 确保你已经安装了 [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) 并注册了 Heroku 帐号。
+2. 在终端中登录到 Heroku：
+
+   ```bash
+   heroku login
    ```
-   OPENAI_API_KEY=your_openai_api_key
+
+3. 在你的项目根目录下，运行以下命令创建一个新的 Heroku 应用：
+
+   ```bash
+   heroku create
    ```
-4. 点击 **Deploy**，等待几分钟，Vercel 将自动完成部署。
-5. 部署完成后，你将获得项目的 URL 地址，可以直接访问你的 Snap-Solver 应用。
+
+4. 将你的代码推送到 Heroku：
+
+   ```bash
+   git push heroku master
+   ```
+
+5. 设置 OpenAI API Key 作为环境变量：
+
+   ```bash
+   heroku config:set OPENAI_API_KEY=your_openai_api_key
+   ```
+
+6. 部署完成后，运行以下命令打开你的 Heroku 应用：
+
+   ```bash
+   heroku open
+   ```
+
+7. 你可以通过 Heroku 提供的 URL 访问 Snap-Solver 应用。
 
 ### 2. 修改 `snap.py` 中的服务器网址和热键
 
@@ -64,13 +82,13 @@ Snap-Solver/
 response = requests.post('http://localhost:3000/upload', files=files)
 ```
 
-如果你已将项目部署到 Vercel 上，请将 `localhost` 修改为你的 Vercel 部署 URL。例如，如果你的 Vercel 项目地址是 `https://snap-solver.vercel.app/`，请将上述代码修改为：
+如果你已将项目部署到 Heroku 上，请将 `localhost` 修改为你的 Heroku 应用 URL。例如，如果你的 Heroku 项目地址是 `https://your-app-name.herokuapp.com/`，请将上述代码修改为：
 
 ```python
-response = requests.post('https://snap-solver.vercel.app/upload', files=files)
+response = requests.post('https://your-app-name.herokuapp.com/upload', files=files)
 ```
 
-这样，本地截屏程序将截图上传到 Vercel 部署的服务器。
+这样，本地截屏程序将截图上传到 Heroku 部署的服务器。
 
 #### 修改截屏热键
 
