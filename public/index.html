@@ -86,8 +86,15 @@
             margin: 0 auto;
         }
 
-        #save-crop-button {
-            width: 100%;
+        /* 修改后的按钮样式，两个按钮并排 */
+        .button-group {
+            display: none;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .button-group button {
+            flex: 1;
             padding: 15px;
             background: var(--primary-color);
             border: none;
@@ -96,10 +103,10 @@
             font-size: 1rem;
             cursor: pointer;
             transition: background 0.3s;
-            display: none; /* 默认隐藏 */
+            margin: 0 5px; /* 增加按钮之间的间距 */
         }
 
-        #save-crop-button:hover {
+        .button-group button:hover {
             background: #4f46e5;
         }
 
@@ -228,7 +235,6 @@
                 font-size: 1.5rem;
             }
 
-            #save-crop-button,
             #solve-button {
                 font-size: 0.9rem;
             }
@@ -245,6 +251,14 @@
 
             .upload-icon {
                 font-size: 3rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .button-group button {
+                margin: 5px 0;
             }
         }
     </style>
@@ -268,11 +282,14 @@
             <img id="uploaded-image" src="" alt="上传的截图" />
         </div>
 
-        <button id="save-crop-button">开始识别</button>
+        <!-- 按钮组，两个按钮并排显示 -->
+        <div class="button-group">
+            <button id="solve-with-image-button">使用图片解题</button>
+            <button id="analyze-text-then-solve-button">分析文本再解题</button>
+        </div>
 
         <div id="extracted-text-container">
             <h2>提取的题目文本</h2>
-            <!-- 将提取的文本改为可编辑的 textarea -->
             <textarea id="extracted-text"></textarea>
             <button id="solve-button">重新解答</button>
         </div>
@@ -297,7 +314,8 @@
     <script>
         const socket = io();
         const uploadedImage = document.getElementById('uploaded-image');
-        const saveCropButton = document.getElementById('save-crop-button');
+        const solveWithImageButton = document.getElementById('solve-with-image-button');
+        const analyzeTextThenSolveButton = document.getElementById('analyze-text-then-solve-button');
         const instruction = document.getElementById('instruction');
         const extractedTextContainer = document.getElementById('extracted-text-container');
         const extractedTextArea = document.getElementById('extracted-text');
@@ -308,6 +326,7 @@
         const loadingText = document.getElementById('loading-text');
         const imageWrapper = document.getElementById('image-wrapper');
         const uploadIcon = document.querySelector('.upload-icon');
+        const buttonGroup = document.querySelector('.button-group');
         let cropper = null;
         let uploadedImageData = null;
 
@@ -320,10 +339,10 @@
             uploadedImageData = `data:image/png;base64,${data.image}`;
             uploadedImage.src = uploadedImageData;
             imageWrapper.style.display = 'block';
-            saveCropButton.style.display = 'block';
             instruction.textContent = '请框选题目区域。';
-            uploadIcon.style.display = 'none'; // 隐藏上传图标
+            uploadIcon.style.display = 'none';
 
+            buttonGroup.style.display = 'flex'; // 显示两个按钮
             extractedTextContainer.style.display = 'none';
             answerContainer.style.display = 'none';
             answerContent.innerHTML = '';
@@ -334,7 +353,6 @@
                 cropper = null;
             }
 
-            // 将 Cropper 应用于 #uploaded-image
             cropper = new Cropper(uploadedImage, {
                 aspectRatio: NaN,
                 viewMode: 1,
@@ -350,21 +368,54 @@
                 dragMode: 'crop',
                 minCropBoxWidth: 50,
                 minCropBoxHeight: 50,
-                ready() {
-                    // 设置初始裁剪框位置，使其不紧贴边缘
-                    const containerData = cropper.getContainerData();
-                    const cropBoxData = {
-                        left: containerData.width * 0.1,
-                        top: containerData.height * 0.1,
-                        width: containerData.width * 0.8,
-                        height: containerData.height * 0.8
-                    };
-                    cropper.setCropBoxData(cropBoxData);
-                }
             });
         });
 
-        saveCropButton.addEventListener('click', () => {
+        solveWithImageButton.addEventListener('click', () => {
+            if (!cropper) {
+                alert('没有图片可裁剪。');
+                return;
+            }
+
+            const cropData = cropper.getData();
+            if (cropData.width <= 0 || cropData.height <= 0) {
+                alert('请选择有效的裁剪区域。');
+                return;
+            }
+
+            loadingOverlay.style.display = 'flex';
+            loadingText.textContent = '使用图片解题中...';
+
+            const cropSettings = {
+                x: cropData.x,
+                y: cropData.y,
+                width: cropData.width,
+                height: cropData.height
+            };
+
+            fetch('/solve-problem-with-image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ cropSettings, image: uploadedImageData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingOverlay.style.display = 'none';
+                answerContainer.style.display = 'block';
+                instruction.textContent = '';
+
+                answerContent.innerHTML = marked.parse(data.answer);
+                buttonGroup.style.display = 'none'; // 隐藏按钮
+            })
+            .catch(err => {
+                loadingOverlay.style.display = 'none';
+                alert('解题时出错，请重试。');
+            });
+        });
+
+        analyzeTextThenSolveButton.addEventListener('click', () => {
             if (!cropper) {
                 alert('没有图片可裁剪。');
                 return;
@@ -393,29 +444,27 @@
                 },
                 body: JSON.stringify({ cropSettings, image: uploadedImageData })
             })
-                .then(response => response.json())
-                .then(data => {
-                    imageWrapper.style.display = 'none';
-                    saveCropButton.style.display = 'none';
+            .then(response => response.json())
+            .then(data => {
+                imageWrapper.style.display = 'none';
 
-                    if (cropper) {
-                        cropper.destroy();
-                        cropper = null;
-                    }
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
 
-                    extractedTextContainer.style.display = 'block';
-                    instruction.textContent = '如有需要，您可以修改提取的文本，然后点击“重新解答”。';
+                extractedTextContainer.style.display = 'block';
+                instruction.textContent = '如有需要，您可以修改提取的文本，然后点击“重新解答”。';
 
-                    extractedTextArea.value = data.extractedText;
+                extractedTextArea.value = data.extractedText;
 
-                    // 自动调用解题函数
-                    solveProblem(data.extractedText);
-
-                })
-                .catch(err => {
-                    loadingOverlay.style.display = 'none';
-                    alert('处理图片时出错，请重试。');
-                });
+                solveProblem(data.extractedText);
+                buttonGroup.style.display = 'none'; // 隐藏按钮
+            })
+            .catch(err => {
+                loadingOverlay.style.display = 'none';
+                alert('处理图片时出错，请重试。');
+            });
         });
 
         solveButton.addEventListener('click', () => {
@@ -439,18 +488,18 @@
                 },
                 body: JSON.stringify({ extractedText })
             })
-                .then(response => response.json())
-                .then(data => {
-                    loadingOverlay.style.display = 'none';
-                    answerContainer.style.display = 'block';
-                    instruction.textContent = '';
+            .then(response => response.json())
+            .then(data => {
+                loadingOverlay.style.display = 'none';
+                answerContainer.style.display = 'block';
+                instruction.textContent = '';
 
-                    answerContent.innerHTML = marked.parse(data.answer);
-                })
-                .catch(err => {
-                    loadingOverlay.style.display = 'none';
-                    alert('解题时出错，请重试。');
-                });
+                answerContent.innerHTML = marked.parse(data.answer);
+            })
+            .catch(err => {
+                loadingOverlay.style.display = 'none';
+                alert('解题时出错，请重试。');
+            });
         }
 
         socket.on('uploading_image', () => {

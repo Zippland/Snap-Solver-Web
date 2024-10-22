@@ -73,7 +73,7 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
                         },
                         {
                             type: 'text',
-                            text: '请按格式提取这张图片中的所有内容，一字不落。如果出现图片，请按格式详细描述图片，越详细越好。'
+                            text: '请按格式提取这张图片中的所有内容，一字不落。'
                         }
                     ]
                 }
@@ -145,7 +145,7 @@ app.post('/solve-problem-with-image', async (req, res) => {
                         },
                         {
                             type: 'text',
-                            text: '请解答这张图片中的题目。请解答以下题目。如果是选择题，请先仔细分析题目中的每一个选项，然后给我正确答案。'
+                            text: '请解答图中的题目。如果是选择题，请先仔细分析题目中的每一个选项，然后给我正确答案。'
                         }
                     ]
                 }
