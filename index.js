@@ -1,4 +1,5 @@
 // index.js（后端服务器）
+
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
@@ -26,52 +27,55 @@ app.use(express.json({ limit: '100mb' }));
 app.post('/save-crop-settings-and-process', async (req, res) => {
     const { cropSettings, image } = req.body;
     console.log('Received Crop Settings:', cropSettings); // 输出接收到的裁剪数据以验证是否正确
+
     try {
         // 保存裁剪设置
-        savedCropSettings = req.body.cropSettings; // 更新保存的裁剪设置
+        savedCropSettings = cropSettings;
 
         const buffer = Buffer.from(image.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-      let img = sharp(buffer);
-      const metadata = await img.metadata();
-      const imgWidth = metadata.width;
-      const imgHeight = metadata.height;
-      
-      // 验证裁剪区域是否在图片范围内
-      const cropX = Math.max(0, Math.min(Math.round(savedCropSettings.x), imgWidth));
-      if (cropX + savedCropSettings.width > imgWidth) {
-          console.error('Crop width exceeds image width. Adjusting to fit within bounds.');
-          savedCropSettings.width = imgWidth - cropX;
-      }
-      const cropY = Math.max(0, Math.min(Math.round(savedCropSettings.y), imgHeight));
-      if (cropY + savedCropSettings.height > imgHeight) {
-          console.error('Crop height exceeds image height. Adjusting to fit within bounds.');
-          savedCropSettings.height = imgHeight - cropY;
-      }
-      const cropWidth = Math.max(1, Math.min(Math.round(savedCropSettings.width), imgWidth - cropX));
-      const cropHeight = Math.max(1, Math.min(Math.round(savedCropSettings.height), imgHeight - cropY));
-      
-      // 裁剪图片
-      img = img.extract({ left: cropX, top: cropY, width: cropWidth, height: cropHeight });
+        let img = sharp(buffer);
+        const metadata = await img.metadata();
+        const imgWidth = metadata.width;
+        const imgHeight = metadata.height;
+
+        // 验证裁剪区域是否在图片范围内
+        const cropX = Math.max(0, Math.min(Math.round(savedCropSettings.x), imgWidth));
+        const cropY = Math.max(0, Math.min(Math.round(savedCropSettings.y), imgHeight));
+
+        if (cropX + savedCropSettings.width > imgWidth) {
+            console.error('Crop width exceeds image width. Adjusting to fit within bounds.');
+            savedCropSettings.width = imgWidth - cropX;
+        }
+        if (cropY + savedCropSettings.height > imgHeight) {
+            console.error('Crop height exceeds image height. Adjusting to fit within bounds.');
+            savedCropSettings.height = imgHeight - cropY;
+        }
+
+        const cropWidth = Math.max(1, Math.min(Math.round(savedCropSettings.width), imgWidth - cropX));
+        const cropHeight = Math.max(1, Math.min(Math.round(savedCropSettings.height), imgHeight - cropY));
+
+        // 裁剪图片
+        img = img.extract({ left: cropX, top: cropY, width: cropWidth, height: cropHeight });
 
         const croppedImageBuffer = await img.png().toBuffer();
         const base64CroppedImage = croppedImageBuffer.toString('base64');
 
-        // 调用 GPT 服务进行解答
-        const gptResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
-            model: 'gpt-4o-2024-08-06',
+        // **步骤1：使用“gpt-4o-mini”模型提取图片中的文本**
+        const extractTextResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
+            model: 'gpt-4o-mini',
             messages: [
                 {
                     role: 'user',
                     content: [
                         {
-                            type: 'text',
-                            text: '请解答途中的题目。如果是选择题，请先仔细分析题目中的每一个选项，然后给我正确答案.'
-                        },
-                        {
                             type: 'image_url',
                             image_url: {
                                 url: `data:image/png;base64,${base64CroppedImage}`
                             }
+                        },
+                        {
+                            type: 'text',
+                            text: '请提取这张图片中的所有文字，要一字不落。'
                         }
                     ]
                 }
@@ -83,15 +87,42 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
                 'Content-Type': 'application/json'
             }
         }).catch(err => {
-            console.error('Error calling GPT API:', err);
+            console.error('Error calling GPT-4o-mini API:', err);
             if (err.response && err.response.status === 401) {
-                throw new Error('Unauthorized request. Please check your OpenAI API key.');
+                throw new Error('Unauthorized request. Please检查您的OpenAI API密钥。');
             }
-            throw new Error('Failed to get response from GPT API.');
+            throw new Error('Failed to get response from GPT-4o-mini API.');
+        });
+
+        // 获取提取的文本
+        const extractedText = extractTextResponse.data.choices[0].message.content.trim();
+        console.log('Extracted Text:', extractedText);
+
+        // **步骤2：使用“gpt-4o-2024-08-06”模型解题**
+        const gptResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
+            model: 'gpt-4o-2024-08-06',
+            messages: [
+                {
+                    role: 'user',
+                    content: `请解答以下题目。如果是选择题，请先仔细分析题目中的每一个选项，然后给我正确答案。\n\n${extractedText}`
+                }
+            ],
+            max_tokens: 1000
+        }, {
+            headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        }).catch(err => {
+            console.error('Error calling GPT-4o-2024-08-06 API:', err);
+            if (err.response && err.response.status === 401) {
+                throw new Error('Unauthorized request. 请检查您的OpenAI API密钥。');
+            }
+            throw new Error('Failed to get response from GPT-4o-2024-08-06 API.');
         });
 
         // 获取 GPT 的回答
-        const gptAnswer = gptResponse.data.choices[0].message.content;
+        const gptAnswer = gptResponse.data.choices[0].message.content.trim();
 
         // 返回答案给前端
         res.json({ answer: gptAnswer });
@@ -121,4 +152,4 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-}); 
+});
