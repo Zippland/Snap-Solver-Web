@@ -4,14 +4,14 @@ const http = require('http');
 const { Server } = require('socket.io');
 const multer = require('multer');
 const path = require('path');
-const sharp = require('sharp'); // 用于图片裁剪
-const axios = require('axios'); // 用于请求 GPT API
+const sharp = require('sharp');
+const axios = require('axios');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: '*',
+        origin: '*', // 允许所有域名请求，或设置特定的域名
         methods: ['GET', 'POST']
     },
     transports: ['polling'] // 强制使用 HTTP 长轮询
@@ -62,7 +62,7 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
                     content: [
                         {
                             type: 'text',
-                            text: '请解答途中的题目。如果是选择题，请先仔细分析题目中的每一个选项，然后给我正确答案.'
+                            text: '请解答途中的题目。如果是选择题，请先仔细分析题目中的每一个选项，然后给我正确答案。'
                         },
                         {
                             type: 'image_url',
@@ -79,18 +79,9 @@ app.post('/save-crop-settings-and-process', async (req, res) => {
                 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             }
-        }).catch(err => {
-            console.error('Error calling GPT API:', err);
-            if (err.response && err.response.status === 401) {
-                throw new Error('Unauthorized request. Please check your OpenAI API key.');
-            }
-            throw new Error('Failed to get response from GPT API.');
         });
 
-        // 获取 GPT 的回答
         const gptAnswer = gptResponse.data.choices[0].message.content;
-
-        // 返回答案给前端
         res.json({ answer: gptAnswer });
     } catch (err) {
         console.error('Error processing image or GPT request:', err);

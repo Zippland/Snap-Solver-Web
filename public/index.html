@@ -5,11 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snap-Solver</title>
-    <!-- 引入 Google 字体 -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- 引入 marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -175,8 +174,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
-        const socket = io({
-            transports: ['polling'] // 使用 HTTP 长轮询作为传输方式
+        // 初始化 socket.io，并指定服务端地址，使用 HTTP 长轮询
+        const socket = io('https://snap-solver.vercel.app', {
+            transports: ['polling'] // 强制使用 HTTP 长轮询
         });
 
         const uploadedImage = document.getElementById('uploaded-image');
@@ -252,6 +252,15 @@
         socket.on('uploading_image', () => {
             loadingOverlay.style.display = 'flex';
             instruction.textContent = '正在上传图片，请稍候...';
+        });
+
+        // 捕获 socket.io 的连接错误
+        socket.on('connect_error', (err) => {
+            console.error('Connection error:', err.message);
+        });
+
+        socket.on('error', (err) => {
+            console.error('Socket.IO error:', err);
         });
     </script>
 </body>
