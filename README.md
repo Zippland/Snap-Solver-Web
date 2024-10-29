@@ -1,6 +1,9 @@
 # Snap-Solver
 
-Snap-Solver 是一个可以通过电脑截屏并在移动设备上查看与处理截图的应用程序。本项目实现了截图上传、裁剪、并调用 GPT 进行解答的功能。
+Snap-Solver-Local 是一个基于 OpenAI API 的题目解答工具，支持截图识别和自动解答功能。它可以部署在互联网上。
+
+如果想部署在互联网(Heroku)，请访问项目：Snap-Solver-local[https://github.com/zippland/snap-solver-local]
+(产生此需求的可能：希望无延迟截图上传)
 
 ## 功能介绍
 
