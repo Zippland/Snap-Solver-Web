@@ -1,41 +1,16 @@
-# Snap-Solver
+# Snap-Solver-Web
 
-Snap-Solver-Local 是一个基于 OpenAI API 的题目解答工具，支持截图识别和自动解答功能。它可以部署在互联网上。
+Snap-Solver-Web 是 Snap-Solver 的云端部署版本，主要用于解决gpt和claude api在大陆的限制问题。
 
-如果想部署在本地，请访问项目：[Snap-Solver-local](https://github.com/zippland/snap-solver-local)
+如果想部署在本地，并查看详细介绍，请访问项目：[Snap-Solver-local](https://github.com/zippland/snap-solver-local)
 
-(产生此需求的可能原因：希望无延迟截图上传)
+(产生本地部署需求的可能原因：希望无延迟截图上传)
 
 ## 功能介绍
 
 - **截图上传**：通过本地程序截屏后，图片将被上传到服务器。
 - **裁剪处理**：用户可以在网页上选择图片的裁剪区域。
 - **GPT 解答**：裁剪后的截图会发送到 GPT 进行题目解答。
-
-## 目录结构
-
-```
-Snap-Solver/
-├── public/
-│   └── index.html  # 前端界面
-├── index.js        # 后端服务器
-├── snap.py         # 本地截屏程序
-├── .env            # 环境变量文件（需配置 GPT API Key）
-└── README.md       # 项目说明文件
-```
-
-## 前端技术
-
-- **HTML/CSS/JavaScript**：使用 HTML 和 CSS 创建了简洁的用户界面，并通过 JavaScript 实现功能交互。
-- **Cropper.js**：用于裁剪图片的第三方库。
-- **Socket.io**：用于前后端实时通信，传递图片和裁剪数据。
-
-## 后端技术
-
-- **Node.js & Express**：服务器端框架，用于处理上传的截图和裁剪区域的保存。
-- **Multer**：用于处理多部分表单数据（图片上传）。
-- **Sharp**：处理和裁剪图片。
-- **OpenAI API**：调用 GPT 进行图片内题目的解答。
 
 ## 使用步骤
 
