@@ -1,6 +1,6 @@
 # Snap-Solver-Web
 
-Snap-Solver-Web 是 Snap-Solver 的云端部署版本，主要用于解决gpt和claude api在大陆的限制问题。
+Snap-Solver-Web 是 Snap-Solver 的云端部署版本，主要用于解决 gpt 和 claude api 在大陆的限制问题。
 
 如果想部署在本地，并查看详细介绍，请访问项目：[Snap-Solver-local](https://github.com/zippland/snap-solver-local)
 
